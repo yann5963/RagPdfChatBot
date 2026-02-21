@@ -18,6 +18,12 @@ public class RagController {
     private final VectorIngestionService ingestionService;
     private final RagService ragService;
 
+    /**
+     * Constructeur injectant les services nécessaires pour l'ingestion et le chat.
+     *
+     * @param ingestionService Service gérant l'ingestion des documents vectorisés.
+     * @param ragService       Service gérant les appels à l'assistant LLM.
+     */
     public RagController(VectorIngestionService ingestionService, RagService ragService) {
         this.ingestionService = ingestionService;
         this.ragService = ragService;
@@ -26,12 +32,25 @@ public class RagController {
     @Value("${app.available-models}")
     private List<String> availableModels;
 
+    /**
+     * Affiche la page d'accueil avec l'interface de chat.
+     * Fournit à la vue la liste des modèles LLM disponibles.
+     *
+     * @param model Modèle Thymeleaf pour passer des attributs à la vue.
+     * @return Le nom du template de la vue (chat.html).
+     */
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("availableModels", availableModels);
         return "chat";
     }
 
+    /**
+     * Point de terminaison API pour téléverser et vectoriser un fichier PDF.
+     *
+     * @param file Fichier PDF envoyé par l'utilisateur.
+     * @return Une Map contenant le statut du traitement et un message.
+     */
     @PostMapping("/api/ingest")
     @ResponseBody
     public Map<String, String> ingest(@RequestParam("file") MultipartFile file) {
@@ -43,6 +62,14 @@ public class RagController {
         }
     }
 
+    /**
+     * Point de terminaison API pour traiter les questions de l'utilisateur.
+     * Récupère la réponse de l'assistant LLM sélectionné.
+     *
+     * @param payload Map contenant la question de l'utilisateur et le modèle
+     *                choisi.
+     * @return Une Map contenant la réponse générée.
+     */
     @PostMapping("/api/chat")
     @ResponseBody
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {

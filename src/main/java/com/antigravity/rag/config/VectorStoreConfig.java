@@ -11,6 +11,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 @Configuration
 public class VectorStoreConfig {
 
+    /**
+     * Configure et instancie le magasin vectoriel (VectorStore) en utilisant
+     * PostgreSQL avec pgvector.
+     * Configure les dimensions du modèle, le type de distance et le type d'index.
+     *
+     * @param jdbcTemplate   Le template JDBC pour interagir avec la base de
+     *                       données.
+     * @param embeddingModel Le modèle d'intégration de texte (ex:
+     *                       OllamaEmbeddingModel).
+     * @return L'instance VectorStore configurée.
+     */
     @Bean
     public VectorStore pgVectorStore(JdbcTemplate jdbcTemplate,
             @Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel) {
