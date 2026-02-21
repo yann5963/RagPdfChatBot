@@ -5,7 +5,11 @@ import com.antigravity.rag.service.VectorIngestionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ui.Model;
+
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -19,8 +23,12 @@ public class RagController {
         this.ragService = ragService;
     }
 
+    @Value("${app.available-models}")
+    private List<String> availableModels;
+
     @GetMapping("/")
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("availableModels", availableModels);
         return "chat";
     }
 
@@ -39,7 +47,8 @@ public class RagController {
     @ResponseBody
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {
         String question = payload.get("question");
-        String answer = ragService.generateResponse(question);
+        String model = payload.getOrDefault("model", "glm-4.6:cloud");
+        String answer = ragService.generateResponse(question, model);
         return Map.of("answer", answer);
     }
 }

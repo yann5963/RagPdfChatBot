@@ -54,6 +54,18 @@
                                 </button>
                                 <div id="uploadStatus" class="fr-mt-4w"></div>
                             </form>
+
+                            <!-- ============================== -->
+                            <!-- Model Selection                -->
+                            <!-- ============================== -->
+                            <div class="fr-select-group fr-mt-4w">
+                                <label class="fr-label" for="modelSelect">Modèle LLM</label>
+                                <select class="fr-select" id="modelSelect" name="modelSelect">
+                                    <option th:each="model : ${availableModels}" th:value="${model}" th:text="${model}"
+                                        th:selected="${model == 'glm-4.6:cloud'}">
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -136,7 +148,10 @@
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: text })
+                    body: JSON.stringify({
+                        question: text,
+                        model: document.getElementById('modelSelect').value
+                    })
                 });
                 const result = await response.json();
                 appendMessage(result.answer, 'assistant');
