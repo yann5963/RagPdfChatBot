@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - RAG Assistant</title>
+    <link rel="stylesheet" th:href="@{/css/dsfr-local.css}" href="/css/dsfr-local.css" />
+</head>
+
+<body>
+    <!-- Header -->
+    <div th:insert="~{layout :: header}"></div>
+
+    <!-- Main content -->
+    <main role="main" id="content">
+        <!-- Breadcrumb -->
+        <div class="fr-container fr-mt-3w">
+            <nav role="navigation" class="fr-breadcrumb" aria-label="vous êtes ici :">
+                <ol class="fr-breadcrumb__list">
+                    <li>
+                        <a class="fr-breadcrumb__link" href="/">Accueil</a>
+                    </li>
+                    <li>
+                        <a class="fr-breadcrumb__link" aria-current="page">Assistant RAG</a>
+                    </li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="fr-container fr-mt-2w fr-mb-8w">
+            <div class="fr-grid-row fr-grid-row--gutters">
+
+                <!-- ============================== -->
+                <!-- SIDEBAR: Téléverser            -->
+                <!-- ============================== -->
+                <div class="fr-col-12 fr-col-md-4 fr-col-lg-3">
+                    <div class="fr-card fr-card--no-border" style="background-color: var(--grey-50);">
+                        <div class="fr-card__body">
+                            <h2 class="fr-card__title">Téléverser</h2>
+                            <p class="fr-card__desc">
+                                Ajoutez des documents PDF pour enrichir le contexte de l'assistant.
+                            </p>
+                            <form id="uploadForm">
+                                <div class="fr-upload-group">
+                                    <label class="fr-label" for="fileInput">
+                                        Fichier PDF
+                                        <span class="fr-hint-text">Sélectionnez un fichier au format .pdf</span>
+                                    </label>
+                                    <input class="fr-upload" type="file" id="fileInput" accept=".pdf" required />
+                                </div>
+                                <button class="fr-btn fr-mt-2w" type="submit">
+                                    Téléverser et traiter
+                                </button>
+                                <div id="uploadStatus" class="fr-mt-4w"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================== -->
+                <!-- MAIN CHAT SECTION              -->
+                <!-- ============================== -->
+                <div class="fr-col-12 fr-col-md-8 fr-col-lg-9">
+                    <h2>Conversation</h2>
+
+                    <!-- Chat History -->
+                    <div id="chat-history" class="app-chat-history">
+                        <!-- Messages go here -->
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="fr-input-group">
+                        <label class="fr-label" for="questionInput">Votre question</label>
+                        <textarea class="fr-input" id="questionInput" rows="5"
+                            placeholder="Posez votre question ici… (Entrée pour envoyer, Maj+Entrée pour un saut de ligne)"></textarea>
+                    </div>
+
+                    <div class="app-chat-actions">
+                        <span id="loader" class="app-loader">Réflexion en cours…</span>
+                        <button class="fr-btn" id="sendBtn">Envoyer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:insert="~{layout :: footer}"></div>
+
+    <script>
+        // ========== Upload Logic ==========
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('fileInput');
+            const statusDiv = document.getElementById('uploadStatus');
+
+            if (fileInput.files.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            statusDiv.innerHTML = '<div class="fr-alert fr-alert--info fr-alert--sm"><p>Téléversement et traitement en cours…</p></div>';
+
+            try {
+                const response = await fetch('/api/ingest', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    statusDiv.innerHTML = '<div class="fr-alert fr-alert--success fr-alert--sm"><p>' + result.message + '</p></div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="fr-alert fr-alert--error fr-alert--sm"><p>' + result.message + '</p></div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="fr-alert fr-alert--error fr-alert--sm"><p>Erreur lors du téléversement du fichier.</p></div>';
+            }
+        });
+
+        // ========== Chat Logic ==========
+        const chatHistory = document.getElementById('chat-history');
+        const questionInput = document.getElementById('questionInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const loader = document.getElementById('loader');
+
+        async function sendMessage() {
+            const text = questionInput.value.trim();
+            if (!text) return;
+
+            appendMessage(text, 'user');
+            questionInput.value = '';
+            loader.style.display = 'inline';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: text })
+                });
+                const result = await response.json();
+                appendMessage(result.answer, 'assistant');
+            } catch (error) {
+                appendMessage("Erreur de communication avec le serveur.", 'assistant');
+            } finally {
+                loader.style.display = 'none';
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+        }
+
+        function appendMessage(text, role) {
+            const div = document.createElement('div');
+            div.className = 'app-message app-message--' + role;
+            div.textContent = text;
+            chatHistory.appendChild(div);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        questionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+
+</html>

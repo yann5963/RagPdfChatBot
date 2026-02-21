@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<!--
+    This file provides reusable Thymeleaf fragments (header, footer).
+    It is NOT a decorator; use th:insert / th:replace in each page.
+-->
+
+<!-- ===== HEADER FRAGMENT ===== -->
+<header th:fragment="header" role="banner" class="fr-header">
+    <div class="fr-container">
+        <div class="fr-header__body">
+            <div class="fr-header__body-row">
+                <div class="fr-header__brand">
+                    <div class="fr-header__logo">
+                        <p class="fr-logo">
+                            Ministère<br>de l'Éducation<br>nationale
+                        </p>
+                    </div>
+                    <div class="fr-header__service">
+                        <a href="/" title="Accueil – RAG Assistant">
+                            <p class="fr-header__service-title">RAG Assistant</p>
+                        </a>
+                        <p class="fr-header__service-tagline">Recherche augmentée par intelligence artificielle</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== FOOTER FRAGMENT ===== -->
+<footer th:fragment="footer" class="fr-footer" role="contentinfo">
+    <div class="fr-container">
+        <div class="fr-footer__body">
+            <div class="fr-footer__brand">
+                <p class="fr-logo">
+                    Ministère<br>de l'Éducation<br>nationale
+                </p>
+            </div>
+            <div class="fr-footer__content">
+                <p class="fr-footer__content-desc">
+                    RAG Assistant – Application de recherche augmentée propulsée par Spring AI et Ollama.
+                </p>
+            </div>
+        </div>
+        <div class="fr-footer__bottom">
+            <ul class="fr-footer__bottom-list">
+                <li class="fr-footer__bottom-item">
+                    <span class="fr-footer__bottom-link">Accessibilité : non conforme</span>
+                </li>
+                <li class="fr-footer__bottom-item">
+                    <span class="fr-footer__bottom-link">Mentions légales</span>
+                </li>
+            </ul>
+            <div class="fr-footer__bottom-copy">
+                <p>Sauf mention explicite de propriété intellectuelle détenue par des tiers, les contenus
+                    sont proposés sous
+                    <a href="https://github.com/etalab/licence-ouverte/blob/master/LO.md" target="_blank"
+                        rel="noopener">licence etalab-2.0</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</html>
