@@ -78,4 +78,20 @@ public class RagController {
         String answer = ragService.generateResponse(question, model);
         return Map.of("answer", answer);
     }
+
+    /**
+     * Point de terminaison API pour vider la base de données vectorielle.
+     *
+     * @return Une Map contenant le statut de l'opération.
+     */
+    @PostMapping("/api/clear")
+    @ResponseBody
+    public Map<String, String> clearDatabase() {
+        try {
+            ingestionService.clearDatabase();
+            return Map.of("status", "success", "message", "Base de données vectorielle effacée avec succès.");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", "Erreur lors de l'effacement : " + e.getMessage());
+        }
+    }
 }

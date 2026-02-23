@@ -55,10 +55,16 @@
                                 <div id="uploadStatus" class="fr-mt-4w"></div>
                             </form>
 
+                            <button id="clearBtn" class="fr-btn fr-btn--secondary fr-mt-2w" type="button"
+                                style="width: 100%;">
+                                RAZ BDD Vectorielle
+                            </button>
+                            <div id="clearStatus" class="fr-mt-2w"></div>
+
                             <!-- ============================== -->
                             <!-- Model Selection                -->
                             <!-- ============================== -->
-                            <div class="fr-select-group fr-mt-4w">
+                            <div class="fr-select-group fr-select-group--inline fr-mt-4w">
                                 <label class="fr-label" for="modelSelect">Modèle LLM</label>
                                 <select class="fr-select" id="modelSelect" name="modelSelect">
                                     <option th:each="model : ${availableModels}" th:value="${model}" th:text="${model}"
@@ -127,6 +133,24 @@
                 }
             } catch (error) {
                 statusDiv.innerHTML = '<div class="fr-alert fr-alert--error fr-alert--sm"><p>Erreur lors du téléversement du fichier.</p></div>';
+            }
+        });
+
+        // ========== Clear Logic ==========
+        document.getElementById('clearBtn').addEventListener('click', async () => {
+            const statusDiv = document.getElementById('clearStatus');
+            statusDiv.innerHTML = '<div class="fr-alert fr-alert--info fr-alert--sm"><p>Effacement en cours…</p></div>';
+
+            try {
+                const response = await fetch('/api/clear', { method: 'POST' });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    statusDiv.innerHTML = '<div class="fr-alert fr-alert--success fr-alert--sm"><p>' + result.message + '</p></div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="fr-alert fr-alert--error fr-alert--sm"><p>' + result.message + '</p></div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="fr-alert fr-alert--error fr-alert--sm"><p>Erreur lors de l\'effacement de la base.</p></div>';
             }
         });
 
