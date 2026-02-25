@@ -53,9 +53,10 @@ public class RagController {
      */
     @PostMapping("/api/ingest")
     @ResponseBody
-    public Map<String, String> ingest(@RequestParam("file") MultipartFile file) {
+    public Map<String, String> ingest(@RequestParam("file") MultipartFile file,
+                                      @RequestParam(value = "splitterType", defaultValue = "simple") String splitterType) {
         try {
-            ingestionService.ingest(file);
+            ingestionService.ingest(file, splitterType);
             return Map.of("status", "success", "message", "File ingested successfully");
         } catch (IOException e) {
             return Map.of("status", "error", "message", e.getMessage());
