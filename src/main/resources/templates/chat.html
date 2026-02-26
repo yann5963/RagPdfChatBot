@@ -49,6 +49,27 @@
                                     </label>
                                     <input class="fr-upload" type="file" id="fileInput" accept=".pdf" required />
                                 </div>
+                                <div class="fr-form-group fr-mt-2w">
+                                    <fieldset class="fr-fieldset">
+                                        <legend class="fr-fieldset__legend fr-text--regular" id='radio-legend'>
+                                            Type de découpage
+                                        </legend>
+                                        <div class="fr-fieldset__content">
+                                            <div class="fr-radio-group">
+                                                <input type="radio" id="splitSimple" name="splitterType" value="simple"
+                                                    checked>
+                                                <label class="fr-label" for="splitSimple">Simple (Token)</label>
+                                            </div>
+                                            <div class="fr-radio-group">
+                                                <input type="radio" id="splitRecursive" name="splitterType"
+                                                    value="recursive">
+                                                <label class="fr-label" for="splitRecursive">Récursif
+                                                    (Paragraphes)</label>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+
                                 <button class="fr-btn fr-mt-2w" type="submit" style="width: 100%;">
                                     Téléverser et traiter
                                 </button>
@@ -117,6 +138,9 @@
 
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
+
+            const splitterType = document.querySelector('input[name="splitterType"]:checked').value;
+            formData.append('splitterType', splitterType);
 
             statusDiv.innerHTML = '<div class="fr-alert fr-alert--info fr-alert--sm"><p>Téléversement et traitement en cours…</p></div>';
 
