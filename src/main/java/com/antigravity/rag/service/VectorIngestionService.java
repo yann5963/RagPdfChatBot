@@ -1,6 +1,7 @@
 package com.antigravity.rag.service;
 
 import org.springframework.ai.reader.tika.TikaDocumentReader;
+import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.Resource;
@@ -34,22 +35,28 @@ public class VectorIngestionService {
     }
 
     /**
-     * Lit un fichier PDF, le découpe en segments (tokens) et les insère dans la
+     * Lit un fichier PDF, le découpe en segments (tokens ou récursif) et les insère dans la
      * base de données vectorielle.
      * 
      * @param file Le fichier PDF soumis par l'utilisateur.
+     * @param splitterType Le type de découpage ("simple" ou "recursive").
      * @throws IOException En cas d'erreur de lecture du fichier.
      */
-    public void ingest(MultipartFile file) throws IOException {
+    public void ingest(MultipartFile file, String splitterType) throws IOException {
         Resource resource = new InputStreamResource(file.getInputStream());
         TikaDocumentReader reader = new TikaDocumentReader(resource);
 
-        TokenTextSplitter splitter = new TokenTextSplitter(
-                CHUNK_SIZE,
-                MIN_CHUNK_SIZE_CHARS,
-                MIN_CHUNK_LENGTH_TO_EMBED,
-                MAX_NUM_CHUNKS,
-                KEEP_SEPARATOR);
+        TextSplitter splitter;
+        if ("recursive".equalsIgnoreCase(splitterType)) {
+            splitter = new RecursiveCharacterTextSplitter(CHUNK_SIZE, MIN_CHUNK_SIZE_CHARS);
+        } else {
+            splitter = new TokenTextSplitter(
+                    CHUNK_SIZE,
+                    MIN_CHUNK_SIZE_CHARS,
+                    MIN_CHUNK_LENGTH_TO_EMBED,
+                    MAX_NUM_CHUNKS,
+                    KEEP_SEPARATOR);
+        }
 
         vectorStore.accept(splitter.apply(reader.get()));
     }
