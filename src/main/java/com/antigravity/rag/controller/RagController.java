@@ -42,6 +42,7 @@ public class RagController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("availableModels", availableModels);
+        model.addAttribute("ingestedFiles", ingestionService.getIngestedFiles());
         return "chat";
     }
 
@@ -53,11 +54,12 @@ public class RagController {
      */
     @PostMapping("/api/ingest")
     @ResponseBody
-    public Map<String, String> ingest(@RequestParam("file") MultipartFile file,
-                                      @RequestParam(value = "splitterType", defaultValue = "simple") String splitterType) {
+    public Map<String, Object> ingest(@RequestParam("file") MultipartFile file,
+            @RequestParam(value = "splitterType", defaultValue = "simple") String splitterType) {
         try {
             ingestionService.ingest(file, splitterType);
-            return Map.of("status", "success", "message", "File ingested successfully");
+            return Map.of("status", "success", "message", "Fichier traité avec succès", "files",
+                    ingestionService.getIngestedFiles());
         } catch (IOException e) {
             return Map.of("status", "error", "message", e.getMessage());
         }
@@ -87,10 +89,11 @@ public class RagController {
      */
     @PostMapping("/api/clear")
     @ResponseBody
-    public Map<String, String> clearDatabase() {
+    public Map<String, Object> clearDatabase() {
         try {
             ingestionService.clearDatabase();
-            return Map.of("status", "success", "message", "Base de données vectorielle effacée avec succès.");
+            return Map.of("status", "success", "message", "Base de données vectorielle effacée avec succès.", "files",
+                    ingestionService.getIngestedFiles());
         } catch (Exception e) {
             return Map.of("status", "error", "message", "Erreur lors de l'effacement : " + e.getMessage());
         }

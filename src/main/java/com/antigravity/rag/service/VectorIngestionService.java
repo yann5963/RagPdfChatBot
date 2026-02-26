@@ -11,6 +11,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class VectorIngestionService {
@@ -22,6 +26,9 @@ public class VectorIngestionService {
 
     private final VectorStore vectorStore;
     private final JdbcTemplate jdbcTemplate;
+
+    // Set for keeping track of the files currently stored in the DB
+    private final Set<String> ingestedFiles = new LinkedHashSet<>();
 
     /**
      * Constructeur pour injecter le VectorStore de Spring AI et JdbcTemplate.
@@ -35,10 +42,26 @@ public class VectorIngestionService {
     }
 
     /**
-     * Lit un fichier PDF, le découpe en segments (tokens ou récursif) et les insère dans la
+     * S'exécute au démarrage de l'application.
+     * Crée la table si nécessaire et charge l'historique des fichiers en mémoire.
+     */
+    @PostConstruct
+    public void init() {
+        jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS ingested_files (" +
+                        "filename VARCHAR(255) PRIMARY KEY" +
+                        ")");
+
+        List<String> filesInDb = jdbcTemplate.queryForList("SELECT filename FROM ingested_files", String.class);
+        ingestedFiles.addAll(filesInDb);
+    }
+
+    /**
+     * Lit un fichier PDF, le découpe en segments (tokens ou récursif) et les insère
+     * dans la
      * base de données vectorielle.
      * 
-     * @param file Le fichier PDF soumis par l'utilisateur.
+     * @param file         Le fichier PDF soumis par l'utilisateur.
      * @param splitterType Le type de découpage ("simple" ou "recursive").
      * @throws IOException En cas d'erreur de lecture du fichier.
      */
@@ -59,6 +82,16 @@ public class VectorIngestionService {
         }
 
         vectorStore.accept(splitter.apply(reader.get()));
+
+        if (file.getOriginalFilename() != null) {
+            String filename = file.getOriginalFilename();
+            ingestedFiles.add(filename);
+
+            // Persister en base de données de manière asynchrone ou synchrone
+            jdbcTemplate.update(
+                    "INSERT INTO ingested_files (filename) VALUES (?) ON CONFLICT (filename) DO NOTHING",
+                    filename);
+        }
     }
 
     /**
@@ -66,5 +99,16 @@ public class VectorIngestionService {
      */
     public void clearDatabase() {
         jdbcTemplate.execute("TRUNCATE TABLE vector_store");
+        jdbcTemplate.execute("TRUNCATE TABLE ingested_files");
+        ingestedFiles.clear();
+    }
+
+    /**
+     * Retourne la liste des fichiers actuellement ingérés.
+     * 
+     * @return L'ensemble des noms de fichiers.
+     */
+    public Set<String> getIngestedFiles() {
+        return new LinkedHashSet<>(ingestedFiles);
     }
 }

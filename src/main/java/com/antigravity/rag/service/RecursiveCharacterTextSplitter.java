@@ -1,14 +1,11 @@
 package com.antigravity.rag.service;
 
-import org.springframework.ai.document.Document;
-import org.springframework.ai.transformer.splitter.TextSplitter;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.regex.Pattern;
+
+import org.springframework.ai.transformer.splitter.TextSplitter;
 
 /**
  * Diviseur de texte récursif basé sur les caractères.
@@ -102,7 +99,7 @@ public class RecursiveCharacterTextSplitter extends TextSplitter {
         List<String> goodSplits = new ArrayList<>();
 
         for (String s : splits) {
-            if (s.length() < chunkSize) {
+            if (s.length() <= chunkSize) { // Optimisé: un morceau égal à la chunkSize est valide
                 goodSplits.add(s);
             } else {
                 if (!goodSplits.isEmpty()) {
@@ -154,33 +151,47 @@ public class RecursiveCharacterTextSplitter extends TextSplitter {
 
     /**
      * Fusionne les segments pour former des morceaux (chunks) dont la taille est
-     * proche de chunkSize.
+     * au maximum chunkSize. Cette méthode implémente la fenêtre glissante (overlap)
+     * et la restauration éventuelle du séparateur (si keepSeparator est faux).
      *
      * @param splits    Liste de segments à fusionner.
      * @param separator Séparateur qui était utilisé entre les segments.
-     * @return Liste de morceaux fusionnés.
+     * @return Liste de morceaux fusionnés avec prise en compte du recouvrement.
      */
     private List<String> mergeSplits(List<String> splits, String separator) {
         List<String> docs = new ArrayList<>();
-        StringBuilder currentDoc = new StringBuilder();
+        List<String> currentDoc = new ArrayList<>();
         int total = 0;
+        String joinStr = keepSeparator ? "" : separator;
+        int joinLen = joinStr.length();
 
         for (String d : splits) {
             int len = d.length();
-            if (total + len > chunkSize) {
+            int lenToAdd = len + (currentDoc.isEmpty() ? 0 : joinLen);
+
+            if (total + lenToAdd > chunkSize) {
                 if (total > 0) {
-                    docs.add(currentDoc.toString());
+                    docs.add(String.join(joinStr, currentDoc));
+
+                    // Réduction de currentDoc pour respecter le chunkOverlap (fenêtre glissante)
+                    while (total > chunkOverlap
+                            || (total + len + (currentDoc.isEmpty() ? 0 : joinLen) > chunkSize && total > 0)) {
+                        String removed = currentDoc.remove(0);
+                        int lenToRemove = removed.length() + (currentDoc.isEmpty() ? 0 : joinLen);
+                        total -= lenToRemove;
+                    }
+                    // Recalculer lenToAdd après la réduction car currentDoc a peut-être été vidé
+                    lenToAdd = len + (currentDoc.isEmpty() ? 0 : joinLen);
                 }
-                currentDoc = new StringBuilder(d);
-                total = len;
-            } else {
-                currentDoc.append(d);
-                total += len;
             }
+            currentDoc.add(d);
+            total += lenToAdd;
         }
+
         if (total > 0) {
-            docs.add(currentDoc.toString());
+            docs.add(String.join(joinStr, currentDoc));
         }
+
         return docs;
     }
 }
