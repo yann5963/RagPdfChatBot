@@ -12,13 +12,33 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Classe principale de l'application RAG (Retrieval-Augmented Generation).
+ * Démarre le contexte Spring Boot et configure les correctifs nécessaires pour
+ * l'intégration Ollama.
+ */
 @SpringBootApplication(exclude = { PgVectorStoreAutoConfiguration.class })
 public class RagDemoApplication {
 
+    /**
+     * Point d'entrée principal de l'application Spring Boot.
+     *
+     * @param args arguments de la ligne de commande
+     */
     public static void main(String[] args) {
         SpringApplication.run(RagDemoApplication.class, args);
     }
 
+    /**
+     * Bean permettant de corriger le type de contenu renvoyé par Ollama.
+     * Certains appels à Ollama peuvent retourner "text/plain" au lieu de
+     * "application/json",
+     * ce qui provoque des erreurs de désérialisation dans Spring AI.
+     * Cet intercepteur force le Content-Type à "application/json" si la réponse est
+     * en "text/plain".
+     *
+     * @return le customizer de RestClient
+     */
     @Bean
     public RestClientCustomizer ollamaContentTypeFixer() {
         return builder -> builder.requestInterceptor((request, body, execution) -> {

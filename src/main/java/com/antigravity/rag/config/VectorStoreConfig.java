@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 @Configuration
 public class VectorStoreConfig {
 
+    private static final int DIMENSIONS_VECTOR = 768;
+
     /**
      * Configure et instancie le magasin vectoriel (VectorStore) en utilisant
      * PostgreSQL avec pgvector.
@@ -27,7 +29,7 @@ public class VectorStoreConfig {
             @Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel) {
 
         return PgVectorStore.builder(jdbcTemplate, embeddingModel)
-                .dimensions(768)
+                .dimensions(DIMENSIONS_VECTOR)
                 .distanceType(PgVectorStore.PgDistanceType.COSINE_DISTANCE)
                 .indexType(PgVectorStore.PgIndexType.HNSW)
                 .initializeSchema(true)
