@@ -42,13 +42,15 @@ public class RagService {
          *         requête.
          */
         public String generateResponse(String message, String model) {
+                long startTime = System.currentTimeMillis();
+
                 List<Document> similarDocuments = vectorStore
                                 .similaritySearch(SearchRequest.builder().query(message).topK(3).build());
                 String content = similarDocuments != null ? similarDocuments.stream()
                                 .map(Document::getText)
                                 .collect(Collectors.joining("\n")) : "";
 
-                return chatClient.prompt()
+                String response = chatClient.prompt()
                                 .user(message)
                                 .options(OllamaOptions.builder().model(model).build())
                                 .system(s -> s.text(ragPromptTemplate)
@@ -56,5 +58,15 @@ public class RagService {
                                                 .param("input", message))
                                 .call()
                                 .content();
+
+                long endTime = System.currentTimeMillis();
+                long durationInSeconds = (endTime - startTime) / 1000;
+                long minutes = durationInSeconds / 60;
+                long seconds = durationInSeconds % 60;
+
+                String timeMessage = String.format("\n\nTemps mis pour traiter votre question : %d min %d s", minutes,
+                                seconds);
+
+                return response + timeMessage;
         }
 }
