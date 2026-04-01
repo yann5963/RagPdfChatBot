@@ -24,6 +24,9 @@ public class VectorIngestionService {
     private static final int MAX_NUM_CHUNKS = 1000;
     private static final boolean KEEP_SEPARATOR = true;
 
+    private static final int RECURSIVE_CHUNK_SIZE_CHARS = 2000;
+    private static final int RECURSIVE_CHUNK_OVERLAP_CHARS = 200;
+
     private final VectorStore vectorStore;
     private final JdbcTemplate jdbcTemplate;
 
@@ -71,7 +74,7 @@ public class VectorIngestionService {
 
         TextSplitter splitter;
         if ("recursive".equalsIgnoreCase(splitterType)) {
-            splitter = new RecursiveCharacterTextSplitter(CHUNK_SIZE, MIN_CHUNK_SIZE_CHARS);
+            splitter = new RecursiveCharacterTextSplitter(RECURSIVE_CHUNK_SIZE_CHARS, RECURSIVE_CHUNK_OVERLAP_CHARS);
         } else {
             splitter = new TokenTextSplitter(
                     CHUNK_SIZE,
