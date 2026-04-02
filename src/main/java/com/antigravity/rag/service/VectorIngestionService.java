@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import org.springframework.ai.document.Document;
+
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,7 +20,9 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class VectorIngestionService {
-    private static final int CHUNK_SIZE = 500;
+    private static final int TOKEN_CHUNK_SIZE = 500;
+    private static final int RECURSIVE_CHUNK_SIZE = 2000;
+    private static final int RECURSIVE_CHUNK_OVERLAP = 200;
     private static final int MIN_CHUNK_SIZE_CHARS = 50;
     private static final int MIN_CHUNK_LENGTH_TO_EMBED = 5;
     private static final int MAX_NUM_CHUNKS = 1000;
@@ -71,20 +75,28 @@ public class VectorIngestionService {
 
         TextSplitter splitter;
         if ("recursive".equalsIgnoreCase(splitterType)) {
-            splitter = new RecursiveCharacterTextSplitter(CHUNK_SIZE, MIN_CHUNK_SIZE_CHARS);
+            splitter = new RecursiveCharacterTextSplitter(RECURSIVE_CHUNK_SIZE, RECURSIVE_CHUNK_OVERLAP);
         } else {
             splitter = new TokenTextSplitter(
-                    CHUNK_SIZE,
+                    TOKEN_CHUNK_SIZE,
                     MIN_CHUNK_SIZE_CHARS,
                     MIN_CHUNK_LENGTH_TO_EMBED,
                     MAX_NUM_CHUNKS,
                     KEEP_SEPARATOR);
         }
 
-        vectorStore.accept(splitter.apply(reader.get()));
+        List<Document> documents = reader.get();
+        String filename = file.getOriginalFilename();
 
-        if (file.getOriginalFilename() != null) {
-            String filename = file.getOriginalFilename();
+        if (filename != null) {
+            for (Document doc : documents) {
+                doc.getMetadata().put("filename", filename);
+            }
+        }
+
+        vectorStore.accept(splitter.apply(documents));
+
+        if (filename != null) {
             ingestedFiles.add(filename);
 
             // Persister en base de données de manière asynchrone ou synchrone
