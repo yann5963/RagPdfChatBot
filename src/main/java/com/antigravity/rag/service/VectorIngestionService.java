@@ -9,6 +9,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.ai.document.Document;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -23,6 +24,9 @@ public class VectorIngestionService {
     private static final int MIN_CHUNK_LENGTH_TO_EMBED = 5;
     private static final int MAX_NUM_CHUNKS = 1000;
     private static final boolean KEEP_SEPARATOR = true;
+
+    private static final int RECURSIVE_CHUNK_SIZE = 2000;
+    private static final int RECURSIVE_CHUNK_OVERLAP = 200;
 
     private final VectorStore vectorStore;
     private final JdbcTemplate jdbcTemplate;
@@ -69,9 +73,16 @@ public class VectorIngestionService {
         Resource resource = new InputStreamResource(file.getInputStream());
         TikaDocumentReader reader = new TikaDocumentReader(resource);
 
+        List<Document> documents = reader.get();
+        String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown";
+
+        for (Document document : documents) {
+            document.getMetadata().put("filename", filename);
+        }
+
         TextSplitter splitter;
         if ("recursive".equalsIgnoreCase(splitterType)) {
-            splitter = new RecursiveCharacterTextSplitter(CHUNK_SIZE, MIN_CHUNK_SIZE_CHARS);
+            splitter = new RecursiveCharacterTextSplitter(RECURSIVE_CHUNK_SIZE, RECURSIVE_CHUNK_OVERLAP);
         } else {
             splitter = new TokenTextSplitter(
                     CHUNK_SIZE,
@@ -81,10 +92,9 @@ public class VectorIngestionService {
                     KEEP_SEPARATOR);
         }
 
-        vectorStore.accept(splitter.apply(reader.get()));
+        vectorStore.accept(splitter.apply(documents));
 
         if (file.getOriginalFilename() != null) {
-            String filename = file.getOriginalFilename();
             ingestedFiles.add(filename);
 
             // Persister en base de données de manière asynchrone ou synchrone
