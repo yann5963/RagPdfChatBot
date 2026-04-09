@@ -18,7 +18,9 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class VectorIngestionService {
-    private static final int CHUNK_SIZE = 500;
+    private static final int TOKEN_CHUNK_SIZE = 500;
+    private static final int CHAR_CHUNK_SIZE = 2000;
+    private static final int CHAR_CHUNK_OVERLAP = 200;
     private static final int MIN_CHUNK_SIZE_CHARS = 50;
     private static final int MIN_CHUNK_LENGTH_TO_EMBED = 5;
     private static final int MAX_NUM_CHUNKS = 1000;
@@ -78,7 +80,7 @@ public class VectorIngestionService {
             splitter = new RecursiveCharacterTextSplitter(RECURSIVE_CHUNK_SIZE_CHARS, RECURSIVE_CHUNK_OVERLAP);
         } else {
             splitter = new TokenTextSplitter(
-                    CHUNK_SIZE,
+                    TOKEN_CHUNK_SIZE,
                     MIN_CHUNK_SIZE_CHARS,
                     MIN_CHUNK_LENGTH_TO_EMBED,
                     MAX_NUM_CHUNKS,
