@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
 <!--
     This file provides reusable Thymeleaf fragments (header, footer).
     It is NOT a decorator; use th:insert / th:replace in each page.
@@ -21,6 +21,15 @@
                             <p class="fr-header__service-title">RAG Assistant</p>
                         </a>
                         <p class="fr-header__service-tagline">Recherche augmentée par intelligence artificielle</p>
+                    </div>
+                </div>
+                <div class="fr-header__tools">
+                    <div class="fr-header__tools-links">
+                        <ul class="fr-btns-group">
+                            <li sec:authorize="isAuthenticated()">
+                                <a class="fr-btn fr-icon-logout-box-r-line" href="/logout">Se déconnecter</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>

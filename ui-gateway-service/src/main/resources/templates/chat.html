@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
 
 <head>
     <meta charset="UTF-8">
@@ -34,7 +34,7 @@
                 <!-- ============================== -->
                 <!-- SIDEBAR: Téléverser            -->
                 <!-- ============================== -->
-                <div class="fr-col-12 fr-col-md-4 fr-col-lg-3">
+                <div class="fr-col-12 fr-col-md-4 fr-col-lg-3" sec:authorize="hasRole('GESTIONNAIRE')">
                     <div class="fr-card fr-card--no-border" style="background-color: var(--grey-50);">
                         <div class="fr-card__body">
                             <h2 class="fr-card__title">Téléverser</h2>
