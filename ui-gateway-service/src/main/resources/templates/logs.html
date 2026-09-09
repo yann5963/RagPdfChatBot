@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse des Logs - RAG Assistant</title>
+    <link rel="stylesheet" th:href="@{/css/dsfr-local.css}" href="/css/dsfr-local.css" />
+    <style>
+        .log-container {
+            background-color: var(--grey-50);
+            padding: 1rem;
+            border-radius: 0.25rem;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div th:insert="~{layout :: header}"></div>
+
+    <!-- Main content -->
+    <main role="main" id="content">
+        <!-- Breadcrumb -->
+        <div class="fr-container fr-mt-3w">
+            <nav role="navigation" class="fr-breadcrumb" aria-label="vous êtes ici :">
+                <ol class="fr-breadcrumb__list">
+                    <li>
+                        <a class="fr-breadcrumb__link" href="/">Accueil</a>
+                    </li>
+                    <li>
+                        <a class="fr-breadcrumb__link" aria-current="page">Analyse des Logs</a>
+                    </li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="fr-container fr-mt-2w fr-mb-8w">
+            <h1>Analyse des Logs (Gateway)</h1>
+            <p class="fr-text--lead">Les 100 dernières lignes du fichier journal.</p>
+
+            <div class="fr-mb-4w">
+                <a href="/admin/logs" class="fr-btn fr-btn--secondary fr-icon-refresh-line fr-btn--icon-left">
+                    Rafraîchir
+                </a>
+                <a href="/" class="fr-btn fr-btn--tertiary-no-outline">
+                    Retour à l'assistant
+                </a>
+            </div>
+
+            <pre class="log-container" th:text="${logs}"></pre>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:insert="~{layout :: footer}"></div>
+
+</body>
+
+</html>
